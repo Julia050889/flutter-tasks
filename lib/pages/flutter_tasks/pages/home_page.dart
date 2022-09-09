@@ -34,9 +34,10 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     loadJsonData();
     super.initState();
+    setState(() {});
   }
 
-  @override 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
