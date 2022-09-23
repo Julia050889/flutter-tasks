@@ -14,7 +14,7 @@ class _FeedBackState extends State<FeedBack> {
   List<Question> questionsData = [];
   int currentQuestionIndex = 0;
   bool showResult = false;
-  PageController controller = PageController();
+  PageController pageController = PageController();
 
   @override
   void initState() {
@@ -23,7 +23,13 @@ class _FeedBackState extends State<FeedBack> {
         feedbackData = data;
         questionsData = data.questions;
       });
+      // questionsData = data.questions.map<Question>((q) {
+      //   q.answers.sort(((a, b) {
+      //     a.sortOrder.compareTo(b.sortOrder);
+      //   },),);
+      // });
     });
+
     super.initState();
   }
 
@@ -51,55 +57,59 @@ class _FeedBackState extends State<FeedBack> {
   Widget _buildContent() {
     return Column(
       children: [
+        // ignore: prefer_const_constructors
         LinearProgressIndicator(
-            value: currentQuestionIndex + 1 / questionsData.length),
-        _buildQuestion(questionsData[currentQuestionIndex]),
+          value: (currentQuestionIndex + 1) / (questionsData.length),
+          color: Colors.red,
+        ),
+        Expanded(
+          child: PageView.builder(
+            onPageChanged: (value) {
+              currentQuestionIndex = value;
+
+              setState(() {});
+            },
+            itemBuilder: (context, index) {
+              return _buildQuestion(context, questionsData[index]);
+            },
+            itemCount: questionsData.length,
+            scrollDirection: Axis.horizontal,
+            controller: pageController,
+          ),
+        ),
+        //_buildQuestion(questionsData[currentQuestionIndex])
       ],
     );
   }
 
-  Widget _buildQuestion(Question questionData) {
-    return Expanded(
-      child: PageView.builder(
-        controller: controller,
-        //physics: const NeverScrollableScrollPhysics(),
-        onPageChanged: ((value) {
-          setState(() {
-            currentQuestionIndex = value;
-          });
-        }),
-        itemCount: questionsData.length,
-        itemBuilder: ((context, index) {
-          return Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 30,
+  Widget _buildQuestion(BuildContext context, Question questionData) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 30,
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            questionData.questionText,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 20,
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  questionData.questionText,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 20,
+          ),
+          const SizedBox(height: 20),
+          Column(
+            children: questionData.answers
+                .map<Widget>(
+                  (a) => _answerOption(
+                    a,
+                    answerPressed,
                   ),
-                ),
-                const SizedBox(height: 20),
-                Column(
-                  children: questionData.answers
-                      .map<Widget>(
-                        (a) => _answerOption(
-                          a,
-                          answerPressed,
-                        ),
-                      )
-                      .toList(),
-                ),
-                const SizedBox(height: 100),
-              ],
-            ),
-          );
-        }),
+                )
+                .toList(),
+          ),
+          const SizedBox(height: 100),
+        ],
       ),
     );
   }
@@ -113,10 +123,6 @@ class _FeedBackState extends State<FeedBack> {
       child: ElevatedButton(
         onPressed: () {
           onAnswerPressed(answerData.answerId);
-
-          controller.animateToPage(currentQuestionIndex,
-              duration: const Duration(milliseconds: 1000),
-              curve: Curves.easeIn);
         },
         child: Text(answerData.answerText),
       ),
@@ -139,7 +145,7 @@ class _FeedBackState extends State<FeedBack> {
             const SizedBox(height: 50),
             TextButton(
               onPressed: () {},
-              child: Text('Send'),
+              child: const Text('Send'),
             )
           ],
         ),
@@ -152,10 +158,8 @@ class _FeedBackState extends State<FeedBack> {
       setState(() {
         showResult = true;
       });
-    } else {
-      setState(() {
-        currentQuestionIndex++;
-      });
     }
+    pageController.animateToPage(currentQuestionIndex + 1,
+        curve: Curves.easeInOut, duration: const Duration(milliseconds: 700));
   }
 }

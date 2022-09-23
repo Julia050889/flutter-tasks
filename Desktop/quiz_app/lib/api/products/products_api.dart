@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import '../../models/products/product_model.dart';
+import 'package:quiz_app/models/products/product_model.dart';
 
 class ProductsApi {
   final Dio appDioClient;

@@ -30,7 +30,9 @@ class Question {
         questionId: json["question_id"],
         questionText: json["question_text"],
         answers:
-            List<Answer>.from(json["answers"].map((x) => Answer.fromJson(x))),
+            List<Answer>.from(json["answers"].map((x) => Answer.fromJson(x)))
+              ..sort(((a, b) => a.sortOrder - b.sortOrder
+              )),
       );
 
   Map<String, dynamic> toJson() => {

@@ -22,7 +22,6 @@ class SettingApi {
           )
           .toList();
     }
-
     return settings;
   }
 }
