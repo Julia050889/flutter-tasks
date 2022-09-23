@@ -24,7 +24,6 @@ class _FeedBackState extends State<FeedBack> {
         questionsData = data.questions;
       });
     });
-
     super.initState();
   }
 
@@ -63,7 +62,12 @@ class _FeedBackState extends State<FeedBack> {
     return Expanded(
       child: PageView.builder(
         controller: controller,
-        physics: const NeverScrollableScrollPhysics(),
+        //physics: const NeverScrollableScrollPhysics(),
+        onPageChanged: ((value) {
+          setState(() {
+            currentQuestionIndex = value;
+          });
+        }),
         itemCount: questionsData.length,
         itemBuilder: ((context, index) {
           return Container(
@@ -111,7 +115,7 @@ class _FeedBackState extends State<FeedBack> {
           onAnswerPressed(answerData.answerId);
 
           controller.animateToPage(currentQuestionIndex,
-              duration: const Duration(milliseconds: 800),
+              duration: const Duration(milliseconds: 1000),
               curve: Curves.easeIn);
         },
         child: Text(answerData.answerText),

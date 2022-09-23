@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import '../pages/auth/login/login.dart';
 import '../pages/feedback/feedback_page.dart';
 import '../pages/home/home_page.dart';
+import '../pages/setting/setting_page.dart';
 
 class AppRoutes {
   static const login = '/';
   static const homepage = '/homepage';
+  static const settingpage = '/settingpage';
   static const feedback = '/feedback';
 
   static MaterialPageRoute onGenerateRoute(RouteSettings settings) {
@@ -17,7 +19,8 @@ class AppRoutes {
     var routes = <String, WidgetBuilder>{
       AppRoutes.login: (context) => const LoginPage(),
       AppRoutes.homepage: (context) => const HomePageWidget(),
-      AppRoutes.feedback: (context) => const FeedBack()
+      AppRoutes.settingpage: (context) => const SettingPageWidget(),
+      AppRoutes.feedback: (context) => const FeedBack(),
     };
 
     WidgetBuilder builder = routes[settings.name] ?? routes.values.first;
