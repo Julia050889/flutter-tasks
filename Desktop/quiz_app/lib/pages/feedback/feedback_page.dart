@@ -1,83 +1,56 @@
 import 'package:flutter/material.dart';
-import 'package:quiz_app/api/indigo_api.dart';
+import 'package:provider/provider.dart';
 import 'package:quiz_app/models/feedback/feedback_model.dart';
+import 'package:quiz_app/pages/auth/login/login_styles.dart';
+import 'package:quiz_app/pages/feedback/feedback_provider.dart';
 
-class FeedBack extends StatefulWidget {
+class FeedBack extends StatelessWidget {
   const FeedBack({super.key});
 
   @override
-  State<FeedBack> createState() => _FeedBackState();
-}
-
-class _FeedBackState extends State<FeedBack> {
-  FeedBackModel? feedbackData;
-  List<Question> questionsData = [];
-  int currentQuestionIndex = 0;
-  bool showResult = false;
-  PageController pageController = PageController();
-
-  @override
-  void initState() {
-    getData().then((data) {
-      setState(() {
-        feedbackData = data;
-        questionsData = data.questions;
-      });
-      // questionsData = data.questions.map<Question>((q) {
-      //   q.answers.sort(((a, b) {
-      //     a.sortOrder.compareTo(b.sortOrder);
-      //   },),);
-      // });
-    });
-
-    super.initState();
-  }
-
-  Future<FeedBackModel> getData() async {
-    return await IndigoAPI().feedback.getFeedbackData();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.indigo.shade100,
-      appBar: AppBar(
-        title: const Text('QUESTIONS'),
+    return ChangeNotifierProvider(
+      create: ((context) => FeedBackProvider()),
+      child: Scaffold(
+        backgroundColor: Colors.indigo.shade100,
+        appBar: AppBar(
+          title: const Text('QUESTIONS'),
+        ),
+        body: Consumer<FeedBackProvider>(
+          builder: ((context, value, child) {
+            if (value.isLoading) {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            } else {
+              return value.showResult ? _resultView() : _buildContent(value);
+            }
+          }),
+        ),
       ),
-      body: feedbackData == null
-          ? const Center(
-              child: CircularProgressIndicator(),
-            )
-          : showResult
-              ? _resultView()
-              : _buildContent(),
     );
   }
 
-  Widget _buildContent() {
+  Widget _buildContent(provider) {
     return Column(
       children: [
         // ignore: prefer_const_constructors
         LinearProgressIndicator(
-          value: (currentQuestionIndex + 1) / (questionsData.length),
-          color: Colors.red,
+          color: LoginStyles.mainColor,
+          value: (provider.currentQuestionIndex + 1) /
+              (provider.questionsData.length),
         ),
         Expanded(
           child: PageView.builder(
-            onPageChanged: (value) {
-              currentQuestionIndex = value;
-
-              setState(() {});
-            },
+            onPageChanged: ((value) => provider.onChangeIndex(value)),
             itemBuilder: (context, index) {
-              return _buildQuestion(context, questionsData[index]);
+              return _buildQuestion(context, provider.questionsData[index]);
             },
-            itemCount: questionsData.length,
+            itemCount: provider.questionsData.length,
             scrollDirection: Axis.horizontal,
-            controller: pageController,
+            controller: provider.pageController,
           ),
         ),
-        //_buildQuestion(questionsData[currentQuestionIndex])
       ],
     );
   }
@@ -101,10 +74,7 @@ class _FeedBackState extends State<FeedBack> {
           Column(
             children: questionData.answers
                 .map<Widget>(
-                  (a) => _answerOption(
-                    a,
-                    answerPressed,
-                  ),
+                  (a) => _answerOption(a),
                 )
                 .toList(),
           ),
@@ -116,17 +86,17 @@ class _FeedBackState extends State<FeedBack> {
 
   Widget _answerOption(
     Answer answerData,
-    Function(int) onAnswerPressed,
   ) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: () {
-          onAnswerPressed(answerData.answerId);
-        },
-        child: Text(answerData.answerText),
-      ),
-    );
+    return Consumer<FeedBackProvider>(
+        builder: ((context, provider, child) => SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  provider.onChangePage(answerData.answerId);
+                },
+                child: Text(answerData.answerText),
+              ),
+            )));
   }
 
   Widget _resultView() {
@@ -151,15 +121,5 @@ class _FeedBackState extends State<FeedBack> {
         ),
       ),
     );
-  }
-
-  void answerPressed(int answerId) {
-    if (currentQuestionIndex == questionsData.length - 1) {
-      setState(() {
-        showResult = true;
-      });
-    }
-    pageController.animateToPage(currentQuestionIndex + 1,
-        curve: Curves.easeInOut, duration: const Duration(milliseconds: 700));
   }
 }
